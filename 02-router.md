@@ -6,7 +6,6 @@ The Rails Way
 - Create controller at app/controllers/notes\_controller.rb
   - Create index method
   - Create show method
-    - Grab index of array from params[:id]
 - Generate model with title and content
   - Seed 3 notes
 - Add resources line to config/routes.rb
@@ -25,7 +24,7 @@ Backbone Router
 --
 
 - It's a bit like Sinatra, but for client side javascript
-- Remove all rails routes
+- Remove all rails routes except root
   - Add wildcard route to application#index
 - Create ScratchPadRouter in
   app/assets/javascripts/router/scratch\_pad\_router.js.coffee

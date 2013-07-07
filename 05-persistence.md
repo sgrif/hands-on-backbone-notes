@@ -16,13 +16,12 @@ they ignore the Accept header). One option would be to prefix all of our API
 routes with /api, but for now let's rely on the fact that we only need index,
 update, and create, none of which conflict with Backbone.
 
-- `resources :notes, only: [:index, :create, :update]`
+- `resources :notes, only: [:index, :create, :update, :destroy]`
 - Ensure we have the appropriate boilerplate for those methods on the
   controller.
-  - Use respond\_with
-  - Don't forget, we're using strong\_params
-- Move our hard coded data back to db/seeds.rb
-  - remove id
+  - Use `respond_with`
+  - Don't forget, we're using `strong_params`
+    - Just call `permit`, not `require`
 - `rake db:reset`
 
 - Demonstrate (briefly) how we could do this with a `$.ajax` call to /notes, and
@@ -41,15 +40,16 @@ Events on models and collections
 Our view is now blank, because our collection is loading asynchronously, and
 will be empty when it gets passed to the view.
 
-- Wrap the call to `ScratchPad.initialize` in a success callback to fetch
+- Wrap the rest of `initialize` in a success callback to fetch
 - Need to change loop in template to `@notes.models`
-- Note that we can now remove the `rootUrl` property from `Models.Note`, as it's
+- Note that we can now remove the `urlRoot` property from `Models.Note`, as it's
   smart enough to get it from the collection
   - Every model knows that it's a part of a collection, and we can access it via
     the collection property.
 - Edit is now broken, as well, since we don't access collections as arrays.
   - Change the router to call `.get` on the collection.
   - We don't need to do `id - 1`, since `get` takes an id, not an index.
+- Check everything is still working
 
 Actually persisting
 --
@@ -59,12 +59,24 @@ the call to `set` to `save`, passing in the same arguments.
 
 - Demonstrate that we're now persisting our changes across page refreshes.
 - Note that we're sending the whole resource, including unpermitted params (open
-  the log to demonstrate that id, created\_at, and updated\_at were all passed.
+  the log to demonstrate that id, `created_at`, and `updated_at` were all passed.
+  - The unpermitted parameters 'note' is because Backbone is submitting the
+    model's attributes as a root level hash, rather than wrapped in a note
+    key. Rails notices that we didn't pass the note key, so it tries to figure
+    out what to wrap for us. This has a ton of gotchas, so I avoid using it. We
+    could make Backbone conform to Rails, by adding this to the model: `toJSON: ->
+    note: super()`, but I'd rather just turn `wrap_parameters` off, and work with
+    the root params hash.
+    - In the controller: `wrap_parameters false`
 - We can pass `patch: true`, to the save method to only update the changed
   attributes.
   - This will only work with Rails 4, since it *actually* sends an HTTP PATCH request.
   - Also note that "changed attributes" means the attributes passed to save.
     Anything changed using `set` will not be sent.
+  - Because of this, I prefer to just send the whole thing, and let
+    `strong_parameters` log the unpermitted params. The unpermitted parameters
+    are only logged in development by default. If the log lines bug you, you can
+    change `permit(:title, :content)` to `slice(:title, :content).permit!`
 
 - Commit!
   - end persistence

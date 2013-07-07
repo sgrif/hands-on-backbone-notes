@@ -9,7 +9,6 @@ Styling
 
 First let's make things look more appropriate.
 
-- Change ul and li to divs
 - 225x225, 20px margin, float left
 - 1px black border
 - 10px padding
@@ -22,20 +21,23 @@ First let's make things look more appropriate.
 - add hr for separation
 - no top margin, 10px bottom
 
-- wrap content in a body textarea
-- 165px tall, overflow: scroll, resize: none
+- wrap content in a body div and textarea
+- 165px tall, resize: none
 
 Wiring up
 --
 
 - Create a save method, which grabs the title and body from the inputs
 - Bind a change event with no target to that method
-  - Mention that if you don't specify a target, the event gets triggered for any
-    element inside of the view.
+  - Mention that if you don't specify a target, the event gets bound to @$el,
+    and events like change or click bubble up from children
 - Title is single line so it should save and blur when enter is pressed
 - Bind the keypress event to call save if e.keyCode == 13
 - Create an endEditing method, and call it at the end of save
-  - `@$(':input').save()`
+  - `@$(':input').blur()`
+
+THE REST IS CUT FOR NOW
+==
 
 Improving the UX
 --

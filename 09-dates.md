@@ -17,7 +17,7 @@ Dates
 - Create a view called `LastUpdated`, and construct it in the initializer with the
   same model
 - Call `setElement` in render
-  - Don't forget to return `@$el`
+  - Don't forget to return `this`
 - Overload remove, and call remove on `@lastUpdated`
   - Mention those pesky memory leaks
 
@@ -25,10 +25,10 @@ Dates
 
 - Still not updating
 - in the constructor: `@listenTo(@model, 'change:updated_at', @render)`
-- In the rails controller, return the model to\_json if it saves, respond to
+- In the rails controller, return the model `to_json` if it saves, respond to
   returns 204 no content by default
   - Unsure if there's a way around that
-  - Still use respond\_with if it doesn't save, as it returns the proper
+  - Still use `respond_with` if it doesn't save, as it returns the proper
     response codes
 - Everything is updating properly
 

@@ -13,6 +13,10 @@ Backbone Models
 - Note that our views have all broken
   - Change getters in template to .get
     - Note that we can leave id alone
+    - We could also have passed the POJO to the view, accessed things via
+      `@title`, and only had to change the render method to
+      `@template(@model.attributes)`
+      - It's a style preference
   - Change setters in view to .set
     - Demonstrate both `@model.set('title', @$('.title').val())` and
       `@model.set(title: @$('.title').val())`
@@ -27,8 +31,6 @@ Removing the hard coded edit link
   - Note this doesn't work without passing urlRoot to the constructor.
   - Remove the duplication by creating a Note model
     - We can remove the curly braces when we do this
-    - We also need to move setting ScratchPad.AllNotes into $(document).ready so
-      the class is loaded
 
 - Commit!
   - end backbone-models

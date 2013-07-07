@@ -7,9 +7,18 @@ give the user the ability to add new items, and delete them once they're there.
 Adding add
 --
 
-- `div>p>button`, give give the div the same styles as `.note`
+- `div.add-actions>p>button`, give give the div the same styles as `.note`
+  except for the border
 - Make the container `position: relative`
 - Absolutely position the `p`, and vertically center it
+  - `
+    p {
+      position: absolute;
+      top: 50%;
+      height: 3em;
+      margin-top: -1.5em;
+    }
+    `
 - Make the button say 'Add Note'
 - Add placeholders to the inputs
 
@@ -34,6 +43,7 @@ Adding remove
 - Add a destroy button to the note div
 - Add `position: relative` to `.note`
 - Button is positioned absolutely, shows on hover, top 7 right 5
+- tabindex="-1"
 
 - Add the destroy route/action to rails
 - Bind the click event to call `@model.destroy()`
