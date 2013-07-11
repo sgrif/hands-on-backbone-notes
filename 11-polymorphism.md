@@ -12,9 +12,38 @@ Now that we've refactored notes to be their own model, let's add todo lists.
 - Update the seeds file to have one note, and one todo list with 2 items
 - `rake db:reset`
 
-- The page will now fail to load because `TodoList` has no `content` method
-- Replace the body `extract!` call in jbuilder with a call to `partial!`
-- Create the `note` and `todo_list` partials
+Jbuilder
+--
+
+- We're including tons of attributes that we don't care about in the JSON, we
+  should be more specific.
+- Go over the options that `to_json` takes, and give ridiculous example of how
+  complex it can be
+  - `@article.as_json(only: [:id, :name, :content], include: [:author,
+    {comments: {only:[:id, :name, :content]}}])`
+  - Add conditionals, and it gets ridiculous.
+- Demonstrate both forms:
+  - `json.title scratch_pad_item.title`
+  - `json.extract! scratch_pad_item, :id, :title, :updated_at`
+- Test in the console
+- Create a partial for body
+- We need to use this view in our html view
+  - `mv index.json.jbuilder _scratch_pad_items.json.jbuilder`
+  - index.json: `json.partial! 'scratch_pad_items', scratch_pad_items: @scratch_pad_items`
+    - Partial rendering is somewhat broken in newer versions of jbuilder. Either
+      require a version before #120 was merged, or do this:
+      `json.partial! partial: scratch_pad_item.body, formats: [:json]`
+  - index.html: `render('scratch_pad_items.json', scratch_pad_items:
+    @scratch_pad_items).html_safe`
+  - Could be extracted to helper method:
+    - `
+      def render_json(collection)
+        table_name = collection.table_name
+        render(table_name, table_name => collection).html_safe
+      end
+      `
+  - Both are ugly, hopefully Rails will give us a better way to do this soon.
+- Check things are still working
 
 - The page is now loading, but has an empty text field rather than a todo list
 - Inspect the model in the console, and note that it's got a `Note` for its body
@@ -97,3 +126,22 @@ Completing todos
 
 - Commit!
   - End saving-todos
+
+Adding new todos
+--
+
+- The easiest way we can get a simple interface is just to always render a todo
+  view with a new item on the bottom
+- Append a new item in the constructor of the items view
+
+- Unfortunately, this won't trigger at present, because we aren't returning the
+  whole resource when we save
+- Create a show view, and break things out into the appropriate partials
+
+- In the model, continue changing the body in initialize, but listen to a change
+  event, and update the associated model
+
+- Update item and note views to only save when the specific inputs change
+- Override save in itemBody to save the parent
+
+- In the items index view, listen for change id and add a new todo

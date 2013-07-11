@@ -15,77 +15,25 @@ Setting up the JSON
 - Add content method to `ScratchPadItem` which delegates to `body`
 - Create controller with index method
   - `mkdir -p app/views/scratch_pad_items`
-  - `mv app/views/main/index.html.erb app/views/scratch_pad_items/`
-  - Delete main controller
+  - `mv app/views/notes/index.html.erb app/views/scratch_pad_items/`
   - Change routes
   - Update html view
     - Rename `AllNotes` to `AllItems`
+      - Don't change collection class
     - `.to_json(methods: :content)`
   - Check things are working
 
-- Go over the options that `to_json` takes, and give ridiculous example of how
-  complex it can be
-- Demonstrate both forms:
-  - `json.title scratch_pad_item.title`
-  - `json.extract! scratch_pad_item, :id, :title, :content, :created_at, :updated_at`
-- `collection = new Backbone.Collection([], {url: '/scatch_pad_items'});
-  collection.fetch()` in the console to test
-- We need to use this view in our html view
-  - `mv index.json.jbuilder _scratch_pad_items.json.jbuilder`
-  - index.json: `json.partial! 'scratch_pad_items', scratch_pad_items: @scratch_pad_items`
-  - index.html: `render('scratch_pad_items.json', scratch_pad_items:
-    @scratch_pad_items).html_safe`
-  - Could be extracted to helper method:
-    - `
-      def render_json(collection)
-        table_name = collection.table_name
-        render(table_name, table_name => collection).html_safe
-      end
-      `
-  - Both are ugly, hopefully Rails will give us a better way to do this soon.
-- Check things are still working
 - Update seeds
 
-Rendering associations in Backbone
+Handling the association
 --
 
-- Let's handle the association in the JS
-- Change view to include body under the body key
-- Create skeleton collection and model class
-- Load collection in the console and demonstrate that body is just a POJO
-- `@body = new ScratchPad.Models.Note(@get('body')); @unset('body')` in constuctor
-  - Break that into multiple lines
-- Demonstrate that the association now works
-  - Call `save` and look at what's sent to the server
-  - Note that the Note is serialized properly
-- Change collection class in index.html
-
-- Rendering is still working, but the content is blank
-- Index is improperly named, change the name of the class
-- Index template is named wrong. Rename it. Change the id of the div
-- Check things are still working after each rename
-  - Mention that normally we'd write unit tests to make sure we don't break
-    things when doing things like renaming
-- `Note` view is named wrong, rename it
-- Show template is named wrong, rename the file
-- Change `@note` to `@scratch_pad_item` or `@model` to be concise
-- Change `className` in view
-- Rename stylesheet file, and change class
-- Make sure everything is still working and styled after all renames
-
-- In show template, replace `textarea` with `div` with same class
-- Create notes/show and paste `textarea`, renaming class to content
-- Create empty `Note` view with correct template
-- Create note subview in constructor, and `setElement` in render
-  - Now is a good time to monkey patch the `assign` method
-  - Note the syntax in CoffeeScript
-- Styles on the textarea are broken
-- Move the `.body` styles to a notes stylesheet, change the selector to
-  `.content`, and wrap it in `.note`
-- Styles are still broken
-  - Add `className` to `Note` view
-  - Note this doesn't work with `setElement`
-  - Replace with `@$el.addClass` in `render`
+- I'd still like to just have a `Note` model in the JS side, but we need to
+  handle the new API structure
+- Change the JSON to include `body`
+- Override the parse method in the model
+- Maintain the same data structure we had before
+- Need to pass parse: true to the constructor of the collection
 
 - Commit!
   - end rendering-association
@@ -93,13 +41,14 @@ Rendering associations in Backbone
 Making it save
 --
 
-- Our views aren't setting the attributes properly.
-- Remove the `save` method, and call `@model.save()` with no args instead
-- In both views, bind to the change event on the specific input required
-  - This can get tedious in large applications. Recommend looking into
-    Backbone.StickIt (or Marionette, which already includes it)
-
 - Even though everything is rendering properly, saving is broken.
+- First, let's get it saving to the correct url, and send the data to the server
+  in the format we got it.
+- Rename collection to `ScratchPadItems`
+- Set the URL to `/scratch_pad_items`
+- Define `toJSON` to return the proper structure
+- Make sure we're calling the right URL with the right parameters
+
 - We can use `accepts_nested_attributes_for`, but a few modifications are
   required
   - Don't forget `update_only: true`
@@ -110,14 +59,6 @@ Making it save
 - define a `permitted_params` method in the form object (assume always `Note`
   for the time being)
 - Create a `save!` method
-- Delegate `to_json` to the model, and return that in the controller (to
-  properly update `updated_at`)
-  - Note that this won't tell Backbone the updated timestamps on associations.
-    We could write some more complex code to build the association if that
-    behavior was needed
-
-- On the backbone model, override `toJSON` and set `body_attributes`
-  - Mention the irony that `toJSON` isn't expected to return a JSON string
 
 - Timestamp isn't updating if we only change the content. Unfortunately,
   `has_one` doesn't take `touch` as an option.
@@ -145,28 +86,6 @@ Creating and Destroying
 - Check that destroy is working
   method
 - Check that create is working with just a title, just a body, and both
-
-Fixing Validations
---
-
-- Our validations have broken as well, and the system is happily letting us save
-  empty notes
-- Since how we perform validation will depend on the type of body, we'll leave
-  the validation where it is.
-- Define `validate` on `ScratchPadItem` and return `@body.validate()`
-- This fails because the body doesn't have a title, any longer. We need the body
-  to know about the parent.
-- Set the `scratch_pad_item` property of `body` in the constructor, and update
-  `Note#validate` appropriately
-- This still fails, because on a new model, the properties are undefined.
-  - Demonstrate that we could solve the problem by setting a defaults array with
-    ''
-  - A better solution would be to use the existential operator
-    - The existential operator can be used to check for null and undefined, and
-      will also absorb nulls in method chains
-    - `unless @scratch_pad_item.get('title')?.trim() or @get('content')?.trim()`
-    - In JS, empty strings are falsey
-- Check that everything is working as expected
 
 - Commit!
   - end associations
