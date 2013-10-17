@@ -4,7 +4,7 @@ Polymorphism
 Now that we've refactored notes to be their own model, let's add todo lists.
 
 - `rails g model TodoList`
-- Extract the relation to `ScratchPadItem` and the touch callback to a concern
+- Extract the relation to `Note` and the touch callback to a concern
 - `rails g model TodoItem todo_list:belongs_to title:string complete:boolean`
 - Default `complete` to false
 - Add `dependent: destroy` and `touch: true`
@@ -12,46 +12,21 @@ Now that we've refactored notes to be their own model, let's add todo lists.
 - Update the seeds file to have one note, and one todo list with 2 items
 - `rake db:reset`
 
-Jbuilder
+Polymorphism in the front-end
 --
 
-- We're including tons of attributes that we don't care about in the JSON, we
-  should be more specific.
-- Go over the options that `to_json` takes, and give ridiculous example of how
-  complex it can be
-  - `@article.as_json(only: [:id, :name, :content], include: [:author,
-    {comments: {only:[:id, :name, :content]}}])`
-  - Add conditionals, and it gets ridiculous.
-- Demonstrate both forms:
-  - `json.title scratch_pad_item.title`
-  - `json.extract! scratch_pad_item, :id, :title, :updated_at`
-- Test in the console
-- Create a partial for body
-- We need to use this view in our html view
-  - `mv index.json.jbuilder _scratch_pad_items.json.jbuilder`
-  - index.json: `json.partial! 'scratch_pad_items', scratch_pad_items: @scratch_pad_items`
-    - Partial rendering is somewhat broken in newer versions of jbuilder. Either
-      require a version before #120 was merged, or do this:
-      `json.partial! partial: scratch_pad_item.body, formats: [:json]`
-  - index.html: `render('scratch_pad_items.json', scratch_pad_items:
-    @scratch_pad_items).html_safe`
-  - Could be extracted to helper method:
-    - `
-      def render_json(collection)
-        table_name = collection.table_name
-        render(table_name, table_name => collection).html_safe
-      end
-      `
-  - Both are ugly, hopefully Rails will give us a better way to do this soon.
-- Check things are still working
+- The page is crashing as soon as we try to parse a todo list
+- We can solve this in the short term by having
+  `data.content = data.body.sticky_note?.content || ""`
 
 - The page is now loading, but has an empty text field rather than a todo list
-- Inspect the model in the console, and note that it's got a `Note` for its body
-- Add `body_type` to the `scratch_pad_item` json
 - Create an empty `TodoList` model
-- Grab the body class dynamically in the `ScratchPadItem` model
+- Rename `Note` to `StickyNote`
+- Change model in the items collection to be a function
+  - Return a new instance of a model from this function
 - Note that the model now has the correct class
 
+- Extract body of `Views.Note` to a separate class
 - Create a `TodoList` view, and have its render method just put some placeholder
   text
 - Define a `viewFor(model)` method on `ScratchPad` that grabs the correct view
@@ -59,9 +34,7 @@ Jbuilder
 - We're now loading the correct view
 
 - The add note button is broken.
-- Change the `addNote` method to call `newNote` on the `ScratchPadItem` class,
-  and add that to the collection
-  - The way `body_type` works should remain isolated to the model
+- Change the `addNote` method to pass a new `StickyNote`
 - Everything should be working again
 
 - Commit!
@@ -70,6 +43,7 @@ Jbuilder
 Rendering todo lists
 --
 
+- Create a serializer for `TodoList` that includes the `todo_items`
 - Create a todo item model/collection
 - Have the collection take a todo list and scope its url appropriately
 - Add the routes for an index method, and demonstrate that the `fetch` method

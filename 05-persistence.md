@@ -22,16 +22,24 @@ update, and create, none of which conflict with Backbone.
   - Use `respond_with`
   - Don't forget, we're using `strong_params`
     - Just call `permit`, not `require`
+    - Backbone doesn't wrap attributes in a root key
 - `rake db:reset`
 
 - Demonstrate (briefly) how we could do this with a `$.ajax` call to /notes, and
   what a pain it'd be if we did it that way
+  - Ironically, `_.map` actually makes it not too completely terrible
+  - ```
+    var notes
+    notesPromise = $.ajax('/notes.json')
+    noteFactory = function(data) { return new App.Models.Note(data) }
+    notesPromise.done(function(data) { notes = _.map(data, noteFactory) })
+    notes
+    ```
 
 Luckily, Backbone again provides some plumbing to do the heavy lifting of this
 for us in the form of Collections.
 
-- Show that we could create an anonymous `Backbone.Collection`, passing it a url
-  and model, then create a `Collections.Notes` class
+- Create a `Collections.Notes` class, with a `url` and `model` property
 - Set `AllNotes` to our new collection class, and call fetch on it
 
 Events on models and collections
@@ -50,6 +58,8 @@ will be empty when it gets passed to the view.
   - Change the router to call `.get` on the collection.
   - We don't need to do `id - 1`, since `get` takes an id, not an index.
 - Check everything is still working
+- Commit!
+  - end json-api
 
 Actually persisting
 --

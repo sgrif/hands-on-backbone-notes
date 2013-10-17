@@ -17,6 +17,10 @@ Backbone Models
       `@title`, and only had to change the render method to
       `@template(@model.attributes)`
       - It's a style preference
+      - Some people prefer to do `@template(@model.toJSON())` instead of
+        attributes. I do not ever use `toJSON` in this fashion, so I can reserve
+        it for translating between my client side and server side domain, more on
+        that later.
   - Change setters in view to .set
     - Demonstrate both `@model.set('title', @$('.title').val())` and
       `@model.set(title: @$('.title').val())`
@@ -28,9 +32,7 @@ Removing the hard coded edit link
   also happens to be the URL we're using for display. Let's refactor to take
   advantage of this.
 - Change href to call `note.url()`
-  - Note this doesn't work without passing urlRoot to the constructor.
-  - Remove the duplication by creating a Note model
-    - We can remove the curly braces when we do this
+  - To do this, we must create a `Note` model.
 
 - Commit!
   - end backbone-models

@@ -7,19 +7,12 @@ todos and notes (the title) from the piece that's different (the content)
 Setting up the JSON
 --
 
-- NOTE: `ScratchPadItem` is a shit name, if you think of something better, use
-  it
-- `rails g model ScratchPadItem title:string body:references`
-  - body is polymorphic
+- `rails g model StickyNote content:string`
+  - Add polymorphic body association to note
   - Create record for each note with the appropriate association and title set
-- Add content method to `ScratchPadItem` which delegates to `body`
-- Create controller with index method
-  - `mkdir -p app/views/scratch_pad_items`
-  - `mv app/views/notes/index.html.erb app/views/scratch_pad_items/`
-  - Change routes
+- Add content method to `Note` which delegates to `body`
+- Update index method
   - Update html view
-    - Rename `AllNotes` to `AllItems`
-      - Don't change collection class
     - `.to_json(methods: :content)`
   - Check things are working
 
@@ -38,14 +31,69 @@ Handling the association
 - Commit!
   - end rendering-association
 
+Serializers
+--
+
+- Once we start passing options around to `to_json`, it's time to bust out a
+  better tool for the job. We'll use `ActiveModel::Serializers` here.
+- Disable root element in an initializer
+- Include the body as a `has_one`
+- Go to `notes.json` in the browser, and note the changed format of body
+- Change the parse method appropriately
+- Create a helper to use in the view for serializing properly
+- ```
+  def serialize(models)
+    ActiveModel::ArraySerializer.new(models).to_json
+  end
+  ```
+
+Consistency
+--
+
+We're giving out data in the format
+
+    { title: 'Something', body: { type: 'whatever', whatever: ... } }
+
+It stands to reason that we should accept data in the same format
+
+    def new_body
+      body_type.classify.constantize.new
+    end
+
+    def body_type
+      params[:body][:type]
+    end
+
+    def formatted_params
+      params.dup.tap do |formatted|
+        formatted[:body_attributes] = formatted[:body][body_type]
+        formatted.delete(:body)
+      end
+    end
+
+    def permitted_params
+      formatted_params.permit(:title, body_attributes: [:id, :content])
+    end
+
+and
+
+    toJSON: ->
+      data = super(arguments...)
+      data.body = {
+        type: 'sticky_note'
+        sticky_note: {
+          content: data.content
+        }
+      }
+      delete data.content
+      data
+
 Making it save
 --
 
 - Even though everything is rendering properly, saving is broken.
 - First, let's get it saving to the correct url, and send the data to the server
   in the format we got it.
-- Rename collection to `ScratchPadItems`
-- Set the URL to `/scratch_pad_items`
 - Define `toJSON` to return the proper structure
 - Make sure we're calling the right URL with the right parameters
 
@@ -53,12 +101,11 @@ Making it save
   required
   - Don't forget `update_only: true`
   - Add a presence validator to `body` as a sanity check
-- Add routes
-- Create a form object that takes a model and parameters, and create it in the
-  update action
-- define a `permitted_params` method in the form object (assume always `Note`
-  for the time being)
-- Create a `save!` method
+  - Create a form object that takes a model and parameters, and create it in the
+    update action
+  - define a `permitted_params` method in the form object (assume always `Note`
+    for the time being)
+  - Create a `save!` method
 
 - Timestamp isn't updating if we only change the content. Unfortunately,
   `has_one` doesn't take `touch` as an option.

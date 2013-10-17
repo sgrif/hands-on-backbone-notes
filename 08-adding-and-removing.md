@@ -59,8 +59,9 @@ Adding some validation
 - Title or body can be blank, not both
 - Add method `validate` to the model
   - Return something if the title and content are both blank
+  - This only prevents saving if set and save are called separately
 
-- Bind to invalid in `ViewsNote` and add an invalid class
+- Bind to invalid in `Views.Note` and add an invalid class
   - `border-color: red`
   - Remove in `beginEditing`
 

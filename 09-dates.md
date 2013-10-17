@@ -27,9 +27,11 @@ Dates
 - in the constructor: `@listenTo(@model, 'change:updated_at', @render)`
 - In the rails controller, return the model `to_json` if it saves, respond to
   returns 204 no content by default
-  - Unsure if there's a way around that
-  - Still use `respond_with` if it doesn't save, as it returns the proper
-    response codes
+  - ```
+    respond_with(note) do |format|
+      format.json { render json: note }
+    end
+    ```
 - Everything is updating properly
 
 - Commit!

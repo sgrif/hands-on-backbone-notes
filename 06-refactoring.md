@@ -12,6 +12,9 @@ Bootstrapping AllNotes
 - Change root to 'notes#index'
 - Set @notes in index
 - Add some in-line JavaScript to notes#index, and set AllNotes there.
+  - `App.AllNotes = new App.Collections.Notes(<%= raw notes.to_json %>);`
+  - Note: We don't need to worry about XSS here, `to_json` properly escapes
+    strings
 - Delete the loading code from initialize
 
 Rendering collections with sub-views

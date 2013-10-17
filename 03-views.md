@@ -1,20 +1,21 @@
 Backbone Views
 --
 
-- Add AllNotes array to ScratchPad in the initialize method
-  - Just copy the hash used in seeds.rb
+- Add `AllNotes` array to `ScratchPad` *in the initialize method*
+  - Just copy the hash used in `seeds.rb`
     - Remove commas, note that CoffeeScript can use newlines instead
   - Add ids
 - In the index route, pass ScratchPad.AllNotes to Notes view
 - Add a container div to application layout
-- `$('#container').html(index.render())`
+- Setup the index route in Backbone
+  - `$('#container').html(index.render().el)`
 - Create view file
 - Notice that everything works with an empty class
   - Mention that the `render` function is noop by default
 - Template options
   - One option that actually comes with backbone itself is `_.template`. It works
     a lot like ERB, however you call it like
-    `_.template('<h1><%= title %></h1>)(title: 'Hello World')`
+    `_.template('<h1><%= title %></h1>')(title: 'Hello World')`
   - We're going to use something called 'eco', which the backbone-on-rails gem
     includes for us. ERB stands for Embedded Ruby. ECO is Embedded CoffeeScript,
     and the syntax will feel very familiar
@@ -26,8 +27,8 @@ Backbone Views
   - Replace with a hard coded anchor tag and mention that we'll come back to it
   - Build the `href` manually
 - Add `template: JST['notes/index']`
-- Add render method `@$el.html(@template(notes: @collection))`
-  - Discuss what @$el is, mention the existance of @el and @$ as well
+- Add render method `@$el.html(@template(notes: @collection)); this`
+  - Discuss what @$el is, mention the existence of @el and @$ as well
   - Note that @collection and @model are automatically present if passed to the
     constructor
 
@@ -39,6 +40,11 @@ Backbone Views
   - Note the ability to pass a method name or a function
   - Simply navigate to the href attribute
     - Note: Can't use `$(this)`, need to do `$(e.currentTarget)`
+    - ```
+      $this = $(e.currentTarget)
+      Backbone.history.navigate($this.attr('href'))
+      false
+      ```
 - Change router for show to log id
   - Note the page doesn't change, the URL is modified
   - Note the need to pass trigger: true to navigate
@@ -53,6 +59,7 @@ Backbone Views
     - `id - 1` because zero-indexing
   - There's not really any reason to have a 'show' action for a single note, so
     we're going to combine show and edit
+  - `tagName: 'form'`
   - Write basic form in template
   - Add 'submit' to events
     - Note the need to grab input values manually
@@ -64,6 +71,12 @@ Backbone Views
             @model[input.name] = input.value
           `
       - Navigate to root at end of method
+    - ```
+      @model.title = @$('.title').val()
+      @model.content = @$('.content').val()
+      Backbone.history.navigate('/', trigger: true)
+      false
+      ```
 
   - Talk about how the page is updating even though nothing is being persisted
   - Demonstrate that we can go from page to page without hitting the server at
@@ -71,8 +84,6 @@ Backbone Views
   - Pages load wicked fast
   - Go back and forward as fast as possible and note that everything still works
     and keeps up
-  - Can demonstrate that doing the same thing on Basecamp breaks it. Good going
-    DHH.
 
 - If we're doing *really* well on time, do an aside on how this could be
   partially server side
