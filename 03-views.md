@@ -1,4 +1,4 @@
-Backbone Views
+Backbone.js Views and Templates
 --
 
 - Add `AllNotes` array to `ScratchPad` *in the initialize method*

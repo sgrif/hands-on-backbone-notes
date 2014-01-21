@@ -1,4 +1,4 @@
-Making it single page
+Converting to a Single Page Application
 ==
 
 Since we've gone through all this trouble to never actually leave the page, why

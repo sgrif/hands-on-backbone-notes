@@ -1,4 +1,4 @@
-Dates
+Responding to Server-side Changes
 ==
 
 - Add last updated to footer div

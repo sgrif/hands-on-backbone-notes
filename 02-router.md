@@ -1,4 +1,4 @@
-The Rails Way
+Backbone.js Routers
 --
 
 - Remove 'Hello From Backbone' alert in

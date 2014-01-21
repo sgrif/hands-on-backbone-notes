@@ -1,4 +1,4 @@
-Refactoring
+Improving our Backbone.js Application
 ==
 
 We've got a few things we're doing that feel wrong. Let's see if we can clean
