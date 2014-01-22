@@ -1,9 +1,8 @@
 Backbone.js Collections and Connecting to the Rails API
 --
 
-- Demonstrate (briefly) how we could do this with a `$.ajax` call to /notes, and
-  what a pain it'd be if we did it that way
-  - Ironically, `_.map` actually makes it not too completely terrible
+- If we didn't have Backbone in order to retreive our list of notes we would
+  have to use some code similar to the following
   - ```
     var notes
     notesPromise = $.ajax('/notes.json')
@@ -16,53 +15,79 @@ Luckily, Backbone again provides some plumbing to do the heavy lifting of this
 for us in the form of Collections.
 
 - Create a `Collections.Notes` class, with a `url` and `model` property
-- Set `AllNotes` to our new collection class, and call fetch on it
-
-Events on models and collections
---
-
-Our view is now blank, because our collection is loading asynchronously, and
-will be empty when it gets passed to the view.
-
-- Wrap the rest of `initialize` in a success callback to fetch
-- Need to change loop in template to `@notes.models`
-- Note that we can now remove the `urlRoot` property from `Models.Note`, as it's
-  smart enough to get it from the collection
-  - Every model knows that it's a part of a collection, and we can access it via
-    the collection property.
+  - ```
+    class App.Collections.Notes extends Backbone.Collection
+      url: '/notes'
+      model: App.Models.Note
+    ```
+  - After we've created the collection and associated with our Note Backbone
+    model we can remove the url setting from our model
+    - Every model knows that it's a part of a collection, and we can access it via
+      the collection property.
+- Now that we've created our Notes collection let's use it our application
+  initializer
+  - Wrap the rest of `initialize` in a success callback to fetch since the
+    collection is loading asynchronously
+  - ```
+    window.ScratchPad =
+      Models: {}
+      Collections: {}
+      Views: {}
+      Routers: {}
+      initialize: ->
+        @AllNotes = new @Collections.Notes
+        @AllNotes.fetch().done =>
+          new @Routers.ScratchPadRouter
+          Backbone.history.start(pushState: true)
+    ```
+- Finally we need to change loop in our index.jst.eco template to `@notes.models`
+  - ```
+    <ul>
+      <% for note in @notes.models: %>
+        <li>
+          <dl>
+            <dt>Title</dt>
+            <dd><a href="/notes/<%= note.id  %>"><%= note.get('title') %></a></dd>
+            <dt>Content</dt>
+            <dd><%= note.get('content') %></dd>
+        </li>
+      <% end %>
+    </ul>
+    ```
 - Edit is now broken, as well, since we don't access collections as arrays.
-  - Change the router to call `.get` on the collection.
-  - We don't need to do `id - 1`, since `get` takes an id, not an index.
+  - In our router's showNote method we need to make a couple of adjustments
+  - We don't need to do `id - 1`, since `get` takes an id, not an index
+  - Change the router to call `.get` on the AllNotes collection instead of []
+  - ```
+    class App.Routers.ScratchPadRouter extends Backbone.Router
+      routes:
+        '': -> 'index'
+        '/notes/:id': 'showNote'
+
+      index: ->
+        view = new App.Views.Notes(collection: App.AllNotes)
+        $('#container').html(view.render().el)
+
+      showNote: (id) ->
+        model = App.AllNotes.get(id)
+        view = new App.Views.EditNote(model: model)
+        $('#container').html(view.render().el)
+    ```
 - Check everything is still working
 - Commit!
-  - end json-api
 
 Actually persisting
 --
 
 Now for the magic. All we need to do in order to make our views save is change
-the call to `set` to `save`, passing in the same arguments.
-
-- Demonstrate that we're now persisting our changes across page refreshes.
-- Note that we're sending the whole resource, including unpermitted params (open
-  the log to demonstrate that id, `created_at`, and `updated_at` were all passed.
-  - The unpermitted parameters 'note' is because Backbone is submitting the
-    model's attributes as a root level hash, rather than wrapped in a note
-    key. Rails notices that we didn't pass the note key, so it tries to figure
-    out what to wrap for us. This has a ton of gotchas, so I avoid using it. We
-    could make Backbone conform to Rails, by adding this to the model: `toJSON: ->
-    note: super()`, but I'd rather just turn `wrap_parameters` off, and work with
-    the root params hash.
-    - In the controller: `wrap_parameters false`
-- We can pass `patch: true`, to the save method to only update the changed
-  attributes.
-  - This will only work with Rails 4, since it *actually* sends an HTTP PATCH request.
-  - Also note that "changed attributes" means the attributes passed to save.
-    Anything changed using `set` will not be sent.
-  - Because of this, I prefer to just send the whole thing, and let
-    `strong_parameters` log the unpermitted params. The unpermitted parameters
-    are only logged in development by default. If the log lines bug you, you can
-    change `permit(:title, :content)` to `slice(:title, :content).permit!`
-
+the call to `set` to `save`, passing in the same arguments in our EditNote
+Backbone view's saveModel method.
+- ```
+  saveModel: (e) ->
+    @model.save
+      title: @$('.title').val()
+      content: @$('.content').val()
+    Backbone.history.navigate('/', trigger: true)
+    false
+  ```
 - Commit!
-  - end persistence
